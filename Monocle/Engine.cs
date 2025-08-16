@@ -289,7 +289,7 @@ namespace Monocle
             }
         }
 
-        protected override void OnExiting(object sender, EventArgs args)
+        protected override void OnExiting(object sender, ExitingEventArgs args)
         {
             base.OnExiting(sender, args);
             MInput.Shutdown();

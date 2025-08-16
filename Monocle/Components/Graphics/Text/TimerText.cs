@@ -53,7 +53,7 @@ namespace Monocle
 
         private void CalculateOrigin()
         {
-            Origin = (font.MeasureString(Text) * justify).Floor();
+            Origin = Calc.Floor(font.MeasureString(Text) * justify);
         }
 
         public override void Update()
