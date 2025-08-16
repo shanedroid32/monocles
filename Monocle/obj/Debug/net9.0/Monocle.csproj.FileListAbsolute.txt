@@ -1,0 +1,12 @@
+/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/Debug/net9.0/Monocle.csproj.AssemblyReference.cache
+/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/Debug/net9.0/Monocle.GeneratedMSBuildEditorConfig.editorconfig
+/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/Debug/net9.0/Monocle.csproj.CoreCompileInputs.cache
+/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/Debug/net9.0/Monocle.sourcelink.json
+/Users/shaneross/Documents/GitHub/monocles/Monocle/bin/Debug/net9.0/Content/Monocle/MonocleDefault.xnb
+/Users/shaneross/Documents/GitHub/monocles/Monocle/bin/Debug/net9.0/Monocle.deps.json
+/Users/shaneross/Documents/GitHub/monocles/Monocle/bin/Debug/net9.0/Monocle.dll
+/Users/shaneross/Documents/GitHub/monocles/Monocle/bin/Debug/net9.0/Monocle.pdb
+/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/Debug/net9.0/Monocle.dll
+/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/Debug/net9.0/refint/Monocle.dll
+/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/Debug/net9.0/Monocle.pdb
+/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/Debug/net9.0/ref/Monocle.dll
