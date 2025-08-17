@@ -1,447 +1,416 @@
-﻿using Microsoft.Xna.Framework;
+﻿#nullable enable
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Monocle
 {
+    /// <summary>
+    /// Represents a game object that can have components attached and participate in scenes.
+    /// </summary>
+    /// <remarks>
+    /// Entities are the core building blocks of the Monocle engine. They can be positioned,
+    /// have components for behavior, participate in collision detection, and be organized
+    /// with tags for efficient querying.
+    /// </remarks>
     public class Entity : IEnumerable<Component>, IEnumerable
     {
-        public bool Active = true;
-        public bool Visible = true;
-        public bool Collidable = true;
+        /// <summary>
+        /// Gets or sets whether this entity is active and should be updated.
+        /// </summary>
+        public bool Active { get; set; } = true;
+        
+        /// <summary>
+        /// Gets or sets whether this entity is visible and should be rendered.
+        /// </summary>
+        public bool Visible { get; set; } = true;
+        
+        /// <summary>
+        /// Gets or sets whether this entity can participate in collision detection.
+        /// </summary>
+        public bool Collidable { get; set; } = true;
+        
+        /// <summary>
+        /// The position of this entity in world space.
+        /// </summary>
         public Vector2 Position;
 
-        public Scene Scene { get; private set; }
-        public ComponentList Components { get; private set; }
+        /// <summary>
+        /// Gets the scene that contains this entity, or null if not in a scene.
+        /// </summary>
+        public Scene? Scene { get; private set; }
+        
+        /// <summary>
+        /// Gets the list of components attached to this entity.
+        /// </summary>
+        public ComponentList Components { get; private set; } = null!; // Assigned in constructor
 
         private int tag;
-        private Collider collider;
+        private Collider? collider;
         internal int depth = 0;
         internal double actualDepth = 0;
 
+        /// <summary>
+        /// Initializes a new instance of the Entity class at the specified position.
+        /// </summary>
+        /// <param name="position">The initial position of the entity.</param>
         public Entity(Vector2 position)
         {
             Position = position;
             Components = new ComponentList(this);
         }
 
-        public Entity()
-            : this(Vector2.Zero)
+        /// <summary>
+        /// Initializes a new instance of the Entity class at the origin.
+        /// </summary>
+        public Entity() : this(Vector2.Zero)
         {
-
         }
 
         /// <summary>
-        /// Called when the containing Scene Begins
+        /// Called when the containing scene begins.
         /// </summary>
+        /// <param name="scene">The scene that is beginning.</param>
         public virtual void SceneBegin(Scene scene)
         {
-
+            // Override in derived classes to respond to scene beginning
         }
 
         /// <summary>
-        /// Called when the containing Scene Ends
+        /// Called when the containing scene ends.
         /// </summary>
+        /// <param name="scene">The scene that is ending.</param>
         public virtual void SceneEnd(Scene scene)
         {
-            if (Components != null)
-                foreach (var c in Components)
-                    c.SceneEnd(scene);
+            foreach (var component in Components)
+                component.SceneEnd(scene);
         }
 
         /// <summary>
-        /// Called before the frame starts, after Entities are added and removed, on the frame that the Entity was added
-        /// Useful if you added two Entities in the same frame, and need them to detect each other before they start Updating
+        /// Called before the frame starts, after entities are added and removed.
         /// </summary>
-        /// <param name="scene"></param>
+        /// <param name="scene">The scene containing this entity.</param>
+        /// <remarks>
+        /// This is called on the frame that the entity was added, after all entities
+        /// have been added/removed but before they start updating. Useful when entities
+        /// need to detect each other before the first update.
+        /// </remarks>
         public virtual void Awake(Scene scene)
         {
-            if (Components != null)
-                foreach (var c in Components)
-                    c.EntityAwake();
+            foreach (var component in Components)
+                component.EntityAwake();
         }
 
         /// <summary>
-        /// Called when this Entity is added to a Scene, which only occurs immediately before each Update. 
-        /// Keep in mind, other Entities to be added this frame may be added after this Entity. 
-        /// See Awake() for after all Entities are added, but still before the frame Updates.
+        /// Called when this entity is added to a scene.
         /// </summary>
-        /// <param name="scene"></param>
+        /// <param name="scene">The scene this entity was added to.</param>
+        /// <remarks>
+        /// This occurs immediately before each update. Other entities may be added
+        /// after this entity in the same frame. See Awake() for logic that should
+        /// run after all entities are added but before updates begin.
+        /// </remarks>
         public virtual void Added(Scene scene)
         {
             Scene = scene;
-            if (Components != null)
-                foreach (var c in Components)
-                    c.EntityAdded(scene);
+            foreach (var component in Components)
+                component.EntityAdded(scene);
             Scene.SetActualDepth(this);
         }
 
         /// <summary>
-        /// Called when the Entity is removed from a Scene
+        /// Called when the entity is removed from a scene.
         /// </summary>
-        /// <param name="scene"></param>
+        /// <param name="scene">The scene this entity was removed from.</param>
         public virtual void Removed(Scene scene)
         {
-            if (Components != null)
-                foreach (var c in Components)
-                    c.EntityRemoved(scene);
+            foreach (var component in Components)
+                component.EntityRemoved(scene);
             Scene = null;
         }
 
         /// <summary>
-        /// Do game logic here, but do not render here. Not called if the Entity is not Active
+        /// Updates this entity's logic.
         /// </summary>
+        /// <remarks>
+        /// Called every frame when the entity is Active. Do game logic here,
+        /// but do not perform rendering in this method.
+        /// </remarks>
         public virtual void Update()
         {
             Components.Update();
         }
 
         /// <summary>
-        /// Draw the Entity here. Not called if the Entity is not Visible
+        /// Renders this entity.
         /// </summary>
+        /// <remarks>
+        /// Called every frame when the entity is Visible. Perform all
+        /// drawing operations here.
+        /// </remarks>
         public virtual void Render()
         {
             Components.Render();
         }
 
         /// <summary>
-        /// Draw any debug visuals here. Only called if the console is open, but still called even if the Entity is not Visible
+        /// Renders debug information for this entity.
         /// </summary>
+        /// <param name="camera">The camera to use for debug rendering.</param>
+        /// <remarks>
+        /// Only called when the debug console is open. Called even when the
+        /// entity is not Visible, allowing debugging of invisible entities.
+        /// </remarks>
         public virtual void DebugRender(Camera camera)
         {
-            if (Collider != null)
-                Collider.Render(camera, Collidable ? Color.Red : Color.DarkRed);
-
+            Collider?.Render(camera, Collidable ? Color.Red : Color.DarkRed);
             Components.DebugRender(camera);
         }
 
         /// <summary>
-        /// Called when the graphics device resets. When this happens, any RenderTargets or other contents of VRAM will be wiped and need to be regenerated
+        /// Called when the graphics device resets.
         /// </summary>
+        /// <remarks>
+        /// When this happens, any RenderTargets or other contents of VRAM will be
+        /// wiped and need to be regenerated. Override in derived classes to
+        /// recreate graphics resources.
+        /// </remarks>
         public virtual void HandleGraphicsReset()
         {
             Components.HandleGraphicsReset();
         }
 
+        /// <summary>
+        /// Called when the graphics device is created.
+        /// </summary>
+        /// <remarks>
+        /// Override in derived classes to initialize graphics resources.
+        /// </remarks>
         public virtual void HandleGraphicsCreate()
         {
             Components.HandleGraphicsCreate();
         }
 
+        /// <summary>
+        /// Removes this entity from its containing scene.
+        /// </summary>
         public void RemoveSelf()
         {
-            if (Scene != null)
-                Scene.Entities.Remove(this);
+            Scene?.Entities.Remove(this);
         }
 
+        /// <summary>
+        /// Gets or sets the depth of this entity for rendering order.
+        /// </summary>
+        /// <remarks>
+        /// Lower values are rendered first (behind), higher values are rendered
+        /// last (in front). Changing this value updates the scene's depth sorting.
+        /// </remarks>
         public int Depth
         {
-            get { return depth; }
+            get => depth;
             set
             {
                 if (depth != value)
                 {
                     depth = value;
-                    if (Scene != null)
-                        Scene.SetActualDepth(this);
+                    Scene?.SetActualDepth(this);
                 }
             }
         }
 
+        /// <summary>
+        /// Gets or sets the X coordinate of this entity's position.
+        /// </summary>
         public float X
         {
-            get { return Position.X; }
-            set { Position.X = value; }
+            get => Position.X;
+            set => Position = new Vector2(value, Position.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the Y coordinate of this entity's position.
+        /// </summary>
         public float Y
         {
-            get { return Position.Y; }
-            set { Position.Y = value; }
+            get => Position.Y;
+            set => Position = new Vector2(Position.X, value);
         }
 
         #region Collider
 
-        public Collider Collider
+        /// <summary>
+        /// Gets or sets the collider for this entity.
+        /// </summary>
+        /// <remarks>
+        /// The collider defines the shape used for collision detection.
+        /// Setting this to null disables collision for this entity.
+        /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when attempting to set a collider that is already in use by another entity.
+        /// </exception>
+        public Collider? Collider
         {
-            get { return collider; }
+            get => collider;
             set
             {
-                if (value == collider)
+                if (ReferenceEquals(value, collider))
                     return;
 #if DEBUG
-                if (value.Entity != null)
-                    throw new Exception("Setting an Entity's Collider to a Collider already in use by another object");
+                if (value?.Entity != null)
+                    throw new InvalidOperationException("Cannot assign a collider that is already in use by another entity.");
 #endif
-                if (collider != null)
-                    collider.Removed();
+                collider?.Removed();
                 collider = value;
-                if (collider != null)
-                    collider.Added(this);
+                collider?.Added(this);
             }
         }
 
-        public float Width
-        {
-            get
-            {
-                if (collider == null)
-                    return 0;
-                else
-                    return collider.Width;
-            }
-        }
+        /// <summary>
+        /// Gets the width of this entity's collider, or 0 if no collider is set.
+        /// </summary>
+        public float Width => collider?.Width ?? 0f;
 
-        public float Height
-        {
-            get
-            {
-                if (collider == null)
-                    return 0;
-                else
-                    return collider.Height;
-            }
-        }
+        /// <summary>
+        /// Gets the height of this entity's collider, or 0 if no collider is set.
+        /// </summary>
+        public float Height => collider?.Height ?? 0f;
 
+        /// <summary>
+        /// Gets or sets the left edge of this entity's collider bounds.
+        /// </summary>
         public float Left
         {
-            get
-            {
-                if (collider == null)
-                    return X;
-                else
-                    return Position.X + collider.Left;
-            }
-
-            set
-            {
-                if (collider == null)
-                    Position.X = value;
-                else
-                    Position.X = value - collider.Left;
-            }
+            get => collider?.Left + Position.X ?? X;
+            set => Position = new Vector2(value - (collider?.Left ?? 0f), Position.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the right edge of this entity's collider bounds.
+        /// </summary>
         public float Right
         {
-            get
-            {
-                if (collider == null)
-                    return Position.X;
-                else
-                    return Position.X + collider.Right;
-            }
-
-            set
-            {
-                if (collider == null)
-                    Position.X = value;
-                else
-                    Position.X = value - collider.Right;
-            }
+            get => collider?.Right + Position.X ?? Position.X;
+            set => Position = new Vector2(value - (collider?.Right ?? 0f), Position.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the top edge of this entity's collider bounds.
+        /// </summary>
         public float Top
         {
-            get
-            {
-                if (collider == null)
-                    return Position.Y;
-                else
-                    return Position.Y + collider.Top;
-            }
-
-            set
-            {
-                if (collider == null)
-                    Position.Y = value;
-                else
-                    Position.Y = value - collider.Top;
-            }
+            get => collider?.Top + Position.Y ?? Position.Y;
+            set => Position = new Vector2(Position.X, value - (collider?.Top ?? 0f));
         }
 
+        /// <summary>
+        /// Gets or sets the bottom edge of this entity's collider bounds.
+        /// </summary>
         public float Bottom
         {
-            get
-            {
-                if (collider == null)
-                    return Position.Y;
-                else
-                    return Position.Y + collider.Bottom;
-            }
-
-            set
-            {
-                if (collider == null)
-                    Position.Y = value;
-                else
-                    Position.Y = value - collider.Bottom;
-            }
+            get => collider?.Bottom + Position.Y ?? Position.Y;
+            set => Position = new Vector2(Position.X, value - (collider?.Bottom ?? 0f));
         }
 
+        /// <summary>
+        /// Gets or sets the horizontal center of this entity's collider bounds.
+        /// </summary>
         public float CenterX
         {
-            get
-            {
-                if (collider == null)
-                    return Position.X;
-                else
-                    return Position.X + collider.CenterX;
-            }
-
-            set
-            {
-                if (collider == null)
-                    Position.X = value;
-                else
-                    Position.X = value - collider.CenterX;
-            }
+            get => collider?.CenterX + Position.X ?? Position.X;
+            set => Position = new Vector2(value - (collider?.CenterX ?? 0f), Position.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the vertical center of this entity's collider bounds.
+        /// </summary>
         public float CenterY
         {
-            get
-            {
-                if (collider == null)
-                    return Position.Y;
-                else
-                    return Position.Y + collider.CenterY;
-            }
-
-            set
-            {
-                if (collider == null)
-                    Position.Y = value;
-                else
-                    Position.Y = value - collider.CenterY;
-            }
+            get => collider?.CenterY + Position.Y ?? Position.Y;
+            set => Position = new Vector2(Position.X, value - (collider?.CenterY ?? 0f));
         }
 
+        /// <summary>
+        /// Gets or sets the top-left corner of this entity's collider bounds.
+        /// </summary>
         public Vector2 TopLeft
         {
-            get
-            {
-                return new Vector2(Left, Top);
-            }
-
-            set
-            {
-                Left = value.X;
-                Top = value.Y;
-            }
+            get => new(Left, Top);
+            set => (Left, Top) = (value.X, value.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the top-right corner of this entity's collider bounds.
+        /// </summary>
         public Vector2 TopRight
         {
-            get
-            {
-                return new Vector2(Right, Top);
-            }
-
-            set
-            {
-                Right = value.X;
-                Top = value.Y;
-            }
+            get => new(Right, Top);
+            set => (Right, Top) = (value.X, value.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the bottom-left corner of this entity's collider bounds.
+        /// </summary>
         public Vector2 BottomLeft
         {
-            get
-            {
-                return new Vector2(Left, Bottom);
-            }
-
-            set
-            {
-                Left = value.X;
-                Bottom = value.Y;
-            }
+            get => new(Left, Bottom);
+            set => (Left, Bottom) = (value.X, value.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the bottom-right corner of this entity's collider bounds.
+        /// </summary>
         public Vector2 BottomRight
         {
-            get
-            {
-                return new Vector2(Right, Bottom);
-            }
-
-            set
-            {
-                Right = value.X;
-                Bottom = value.Y;
-            }
+            get => new(Right, Bottom);
+            set => (Right, Bottom) = (value.X, value.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the center point of this entity's collider bounds.
+        /// </summary>
         public Vector2 Center
         {
-            get
-            {
-                return new Vector2(CenterX, CenterY);
-            }
-
-            set
-            {
-                CenterX = value.X;
-                CenterY = value.Y;
-            }
+            get => new(CenterX, CenterY);
+            set => (CenterX, CenterY) = (value.X, value.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the center-left point of this entity's collider bounds.
+        /// </summary>
         public Vector2 CenterLeft
         {
-            get
-            {
-                return new Vector2(Left, CenterY);
-            }
-
-            set
-            {
-                Left = value.X;
-                CenterY = value.Y;
-            }
+            get => new(Left, CenterY);
+            set => (Left, CenterY) = (value.X, value.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the center-right point of this entity's collider bounds.
+        /// </summary>
         public Vector2 CenterRight
         {
-            get
-            {
-                return new Vector2(Right, CenterY);
-            }
-
-            set
-            {
-                Right = value.X;
-                CenterY = value.Y;
-            }
+            get => new(Right, CenterY);
+            set => (Right, CenterY) = (value.X, value.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the top-center point of this entity's collider bounds.
+        /// </summary>
         public Vector2 TopCenter
         {
-            get
-            {
-                return new Vector2(CenterX, Top);
-            }
-
-            set
-            {
-                CenterX = value.X;
-                Top = value.Y;
-            }
+            get => new(CenterX, Top);
+            set => (CenterX, Top) = (value.X, value.Y);
         }
 
+        /// <summary>
+        /// Gets or sets the bottom-center point of this entity's collider bounds.
+        /// </summary>
         public Vector2 BottomCenter
         {
-            get
-            {
-                return new Vector2(CenterX, Bottom);
-            }
-
-            set
-            {
-                CenterX = value.X;
-                Bottom = value.Y;
-            }
+            get => new(CenterX, Bottom);
+            set => (CenterX, Bottom) = (value.X, value.Y);
         }
 
         #endregion
@@ -1160,6 +1129,12 @@ namespace Monocle
             return closest;
         }
 
+        /// <summary>
+        /// Gets the current scene cast to the specified type.
+        /// </summary>
+        /// <typeparam name="T">The scene type to cast to.</typeparam>
+        /// <returns>The scene cast to type T, or null if the cast fails or no scene is set.</returns>
+        [return: MaybeNull]
         public T SceneAs<T>() where T : Scene
         {
             return Scene as T;
