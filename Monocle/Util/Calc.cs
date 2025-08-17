@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿#nullable enable
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -14,50 +15,114 @@ using System.Xml.Serialization;
 
 namespace Monocle
 {
+    /// <summary>
+    /// Comprehensive utility class providing mathematical, string manipulation, random number generation,
+    /// and various helper functions for game development.
+    /// Modernized for .NET 9 with nullable reference types and performance optimizations.
+    /// </summary>
     public static class Calc
     {
         #region Enums
 
-        public static int EnumLength(Type e)
+        /// <summary>
+        /// Gets the number of values defined in the specified enum type.
+        /// </summary>
+        /// <param name="enumType">The enum type to analyze.</param>
+        /// <returns>The number of values in the enum.</returns>
+        /// <exception cref="ArgumentException">Thrown when the type is not an enum.</exception>
+        public static int EnumLength(Type enumType)
         {
-            return Enum.GetNames(e).Length;
+            ArgumentNullException.ThrowIfNull(enumType);
+            if (!enumType.IsEnum)
+                throw new ArgumentException($"Type {enumType.Name} is not an enum type.", nameof(enumType));
+            
+            return Enum.GetNames(enumType).Length;
         }
 
-        public static T StringToEnum<T>(string str) where T : struct
+        /// <summary>
+        /// Converts a string representation to the specified enum value.
+        /// </summary>
+        /// <typeparam name="T">The enum type to convert to.</typeparam>
+        /// <param name="value">The string value to convert.</param>
+        /// <returns>The enum value corresponding to the string.</returns>
+        /// <exception cref="ArgumentException">Thrown when the string cannot be converted to the enum type.</exception>
+        public static T StringToEnum<T>(string value) where T : struct, Enum
         {
-            if (Enum.IsDefined(typeof(T), str))
-                return (T)Enum.Parse(typeof(T), str);
-            else
-                throw new Exception("The string cannot be converted to the enum type.");
+            ArgumentException.ThrowIfNullOrEmpty(value);
+            
+            if (Enum.TryParse<T>(value, out var result))
+                return result;
+            
+            throw new ArgumentException($"The string '{value}' cannot be converted to enum type {typeof(T).Name}.", nameof(value));
         }
 
-        public static T[] StringsToEnums<T>(string[] strs) where T : struct
+        /// <summary>
+        /// Converts an array of string representations to an array of enum values.
+        /// </summary>
+        /// <typeparam name="T">The enum type to convert to.</typeparam>
+        /// <param name="values">The string values to convert.</param>
+        /// <returns>An array of enum values corresponding to the strings.</returns>
+        /// <exception cref="ArgumentException">Thrown when any string cannot be converted to the enum type.</exception>
+        public static T[] StringsToEnums<T>(string[] values) where T : struct, Enum
         {
-            T[] ret = new T[strs.Length];
-            for (int i = 0; i < strs.Length; i++)
-                ret[i] = StringToEnum<T>(strs[i]);
-            return ret;
+            ArgumentNullException.ThrowIfNull(values);
+            
+            var result = new T[values.Length];
+            for (int i = 0; i < values.Length; i++)
+                result[i] = StringToEnum<T>(values[i]);
+            return result;
         }
 
-        public static bool EnumHasString<T>(string str) where T : struct
+        /// <summary>
+        /// Determines whether the specified string can be converted to the enum type.
+        /// </summary>
+        /// <typeparam name="T">The enum type to check against.</typeparam>
+        /// <param name="value">The string value to check.</param>
+        /// <returns>True if the string represents a valid enum value; otherwise, false.</returns>
+        public static bool EnumHasString<T>(string value) where T : struct, Enum
         {
-            return Enum.IsDefined(typeof(T), str);
+            if (string.IsNullOrEmpty(value))
+                return false;
+                
+            return Enum.TryParse<T>(value, out _);
         }
 
         #endregion
 
         #region Strings
 
+        /// <summary>
+        /// Determines whether the beginning of this string instance matches the specified string.
+        /// </summary>
+        /// <param name="str">The string to check.</param>
+        /// <param name="match">The string to compare.</param>
+        /// <returns>True if the string starts with the match; otherwise, false.</returns>
+        /// <remarks>Use the built-in string.StartsWith() method instead for better performance and null safety.</remarks>
+        [Obsolete("Use string.StartsWith() method instead for better performance and null safety.")]
         public static bool StartsWith(this string str, string match)
         {
             return str.IndexOf(match) == 0;
         }
 
+        /// <summary>
+        /// Determines whether the end of this string instance matches the specified string.
+        /// </summary>
+        /// <param name="str">The string to check.</param>
+        /// <param name="match">The string to compare.</param>
+        /// <returns>True if the string ends with the match; otherwise, false.</returns>
+        /// <remarks>Use the built-in string.EndsWith() method instead for better performance and null safety.</remarks>
+        [Obsolete("Use string.EndsWith() method instead for better performance and null safety.")]
         public static bool EndsWith(this string str, string match)
         {
             return str.LastIndexOf(match) == str.Length - match.Length;
         }
 
+        /// <summary>
+        /// Determines whether this string matches any of the specified strings using case-insensitive comparison.
+        /// </summary>
+        /// <param name="str">The string to check.</param>
+        /// <param name="matches">The strings to compare against.</param>
+        /// <returns>True if the string matches any of the provided matches; otherwise, false.</returns>
         public static bool IsIgnoreCase(this string str, params string[] matches)
         {
             if (string.IsNullOrEmpty(str))
@@ -70,34 +135,54 @@ namespace Monocle
             return false;
         }
 
+        /// <summary>
+        /// Converts an integer to a string with zero-padding to ensure minimum digits.
+        /// </summary>
+        /// <param name="num">The number to convert.</param>
+        /// <param name="minDigits">The minimum number of digits in the result.</param>
+        /// <returns>A zero-padded string representation of the number.</returns>
+        /// <remarks>Consider using num.ToString($"D{minDigits}") for better performance.</remarks>
         public static string ToString(this int num, int minDigits)
         {
-            string ret = num.ToString();
-            while (ret.Length < minDigits)
-                ret = "0" + ret;
-            return ret;
+            return minDigits <= 0 ? num.ToString() : num.ToString($"D{minDigits}");
         }
 
+        /// <summary>
+        /// Splits text into lines that fit within the specified width when rendered with the given font.
+        /// </summary>
+        /// <param name="text">The text to split.</param>
+        /// <param name="font">The font used for measuring text width.</param>
+        /// <param name="maxLineWidth">The maximum width allowed for each line.</param>
+        /// <param name="newLine">The character used to force line breaks.</param>
+        /// <returns>An array of strings representing the wrapped lines.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when text or font is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when maxLineWidth is not positive.</exception>
         public static string[] SplitLines(string text, SpriteFont font, int maxLineWidth, char newLine = '\n')
         {
-            List<string> lines = new List<string>();
+            ArgumentNullException.ThrowIfNull(text);
+            ArgumentNullException.ThrowIfNull(font);
+            if (maxLineWidth <= 0)
+                throw new ArgumentException("Maximum line width must be positive.", nameof(maxLineWidth));
+
+            var lines = new List<string>();
 
             foreach (var forcedLine in text.Split(newLine))
             {
-                string line = "";
+                var line = string.Empty;
+                var words = forcedLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                foreach (string word in forcedLine.Split(' '))
+                foreach (var word in words)
                 {
-                    if (font.MeasureString(line + " " + word).X > maxLineWidth)
+                    var testLine = string.IsNullOrEmpty(line) ? word : $"{line} {word}";
+                    
+                    if (font.MeasureString(testLine).X > maxLineWidth && !string.IsNullOrEmpty(line))
                     {
                         lines.Add(line);
                         line = word;
                     }
                     else
                     {
-                        if (line != "")
-                            line += " ";
-                        line += word;
+                        line = testLine;
                     }
                 }
 
@@ -111,245 +196,427 @@ namespace Monocle
 
         #region Count
 
-        public static int Count<T>(T target, T a, T b)
+        /// <summary>
+        /// Counts how many of the provided values match the target value.
+        /// </summary>
+        /// <typeparam name="T">The type of values to compare.</typeparam>
+        /// <param name="target">The value to count matches for.</param>
+        /// <param name="a">First value to check.</param>
+        /// <param name="b">Second value to check.</param>
+        /// <returns>The number of values that match the target (0-2).</returns>
+        public static int Count<T>(T target, T a, T b) where T : notnull
         {
-            int num = 0;
-
-            if (a.Equals(target))
-                num++;
-            if (b.Equals(target))
-                num++;
-
-            return num;
+            var count = 0;
+            if (target.Equals(a)) count++;
+            if (target.Equals(b)) count++;
+            return count;
         }
 
-        public static int Count<T>(T target, T a, T b, T c)
+        /// <summary>
+        /// Counts how many of the provided values match the target value.
+        /// </summary>
+        /// <typeparam name="T">The type of values to compare.</typeparam>
+        /// <param name="target">The value to count matches for.</param>
+        /// <param name="a">First value to check.</param>
+        /// <param name="b">Second value to check.</param>
+        /// <param name="c">Third value to check.</param>
+        /// <returns>The number of values that match the target (0-3).</returns>
+        public static int Count<T>(T target, T a, T b, T c) where T : notnull
         {
-            int num = 0;
-
-            if (a.Equals(target))
-                num++;
-            if (b.Equals(target))
-                num++;
-            if (c.Equals(target))
-                num++;
-
-            return num;
+            var count = 0;
+            if (target.Equals(a)) count++;
+            if (target.Equals(b)) count++;
+            if (target.Equals(c)) count++;
+            return count;
         }
 
-        public static int Count<T>(T target, T a, T b, T c, T d)
+        /// <summary>
+        /// Counts how many of the provided values match the target value.
+        /// </summary>
+        /// <typeparam name="T">The type of values to compare.</typeparam>
+        /// <param name="target">The value to count matches for.</param>
+        /// <param name="a">First value to check.</param>
+        /// <param name="b">Second value to check.</param>
+        /// <param name="c">Third value to check.</param>
+        /// <param name="d">Fourth value to check.</param>
+        /// <returns>The number of values that match the target (0-4).</returns>
+        public static int Count<T>(T target, T a, T b, T c, T d) where T : notnull
         {
-            int num = 0;
-
-            if (a.Equals(target))
-                num++;
-            if (b.Equals(target))
-                num++;
-            if (c.Equals(target))
-                num++;
-            if (d.Equals(target))
-                num++;
-
-            return num;
+            var count = 0;
+            if (target.Equals(a)) count++;
+            if (target.Equals(b)) count++;
+            if (target.Equals(c)) count++;
+            if (target.Equals(d)) count++;
+            return count;
         }
 
-        public static int Count<T>(T target, T a, T b, T c, T d, T e)
+        /// <summary>
+        /// Counts how many of the provided values match the target value.
+        /// </summary>
+        /// <typeparam name="T">The type of values to compare.</typeparam>
+        /// <param name="target">The value to count matches for.</param>
+        /// <param name="a">First value to check.</param>
+        /// <param name="b">Second value to check.</param>
+        /// <param name="c">Third value to check.</param>
+        /// <param name="d">Fourth value to check.</param>
+        /// <param name="e">Fifth value to check.</param>
+        /// <returns>The number of values that match the target (0-5).</returns>
+        public static int Count<T>(T target, T a, T b, T c, T d, T e) where T : notnull
         {
-            int num = 0;
-
-            if (a.Equals(target))
-                num++;
-            if (b.Equals(target))
-                num++;
-            if (c.Equals(target))
-                num++;
-            if (d.Equals(target))
-                num++;
-            if (e.Equals(target))
-                num++;
-
-            return num;
+            var count = 0;
+            if (target.Equals(a)) count++;
+            if (target.Equals(b)) count++;
+            if (target.Equals(c)) count++;
+            if (target.Equals(d)) count++;
+            if (target.Equals(e)) count++;
+            return count;
         }
 
-        public static int Count<T>(T target, T a, T b, T c, T d, T e, T f)
+        /// <summary>
+        /// Counts how many of the provided values match the target value.
+        /// </summary>
+        /// <typeparam name="T">The type of values to compare.</typeparam>
+        /// <param name="target">The value to count matches for.</param>
+        /// <param name="a">First value to check.</param>
+        /// <param name="b">Second value to check.</param>
+        /// <param name="c">Third value to check.</param>
+        /// <param name="d">Fourth value to check.</param>
+        /// <param name="e">Fifth value to check.</param>
+        /// <param name="f">Sixth value to check.</param>
+        /// <returns>The number of values that match the target (0-6).</returns>
+        public static int Count<T>(T target, T a, T b, T c, T d, T e, T f) where T : notnull
         {
-            int num = 0;
+            var count = 0;
+            if (target.Equals(a)) count++;
+            if (target.Equals(b)) count++;
+            if (target.Equals(c)) count++;
+            if (target.Equals(d)) count++;
+            if (target.Equals(e)) count++;
+            if (target.Equals(f)) count++;
+            return count;
+        }
 
-            if (a.Equals(target))
-                num++;
-            if (b.Equals(target))
-                num++;
-            if (c.Equals(target))
-                num++;
-            if (d.Equals(target))
-                num++;
-            if (e.Equals(target))
-                num++;
-            if (f.Equals(target))
-                num++;
-
-            return num;
+        /// <summary>
+        /// Counts how many values in the span match the target value.
+        /// </summary>
+        /// <typeparam name="T">The type of values to compare.</typeparam>
+        /// <param name="target">The value to count matches for.</param>
+        /// <param name="values">The span of values to check.</param>
+        /// <returns>The number of values that match the target.</returns>
+        public static int Count<T>(T target, ReadOnlySpan<T> values) where T : notnull
+        {
+            var count = 0;
+            foreach (var value in values)
+            {
+                if (target.Equals(value))
+                    count++;
+            }
+            return count;
         }
 
         #endregion
 
         #region Give Me
 
+        /// <summary>
+        /// Returns the value at the specified index from the provided arguments.
+        /// </summary>
+        /// <typeparam name="T">The type of values.</typeparam>
+        /// <param name="index">The zero-based index of the value to return.</param>
+        /// <param name="a">First value.</param>
+        /// <param name="b">Second value.</param>
+        /// <returns>The value at the specified index.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when index is not 0 or 1.</exception>
         public static T GiveMe<T>(int index, T a, T b)
         {
-            switch (index)
+            return index switch
             {
-                default:
-                    throw new Exception("Index was out of range!");
-
-                case 0:
-                    return a;
-                case 1:
-                    return b;
-            }
+                0 => a,
+                1 => b,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0 or 1.")
+            };
         }
 
+        /// <summary>
+        /// Returns the value at the specified index from the provided arguments.
+        /// </summary>
+        /// <typeparam name="T">The type of values.</typeparam>
+        /// <param name="index">The zero-based index of the value to return.</param>
+        /// <param name="a">First value.</param>
+        /// <param name="b">Second value.</param>
+        /// <param name="c">Third value.</param>
+        /// <returns>The value at the specified index.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when index is not 0, 1, or 2.</exception>
         public static T GiveMe<T>(int index, T a, T b, T c)
         {
-            switch (index)
+            return index switch
             {
-                default:
-                    throw new Exception("Index was out of range!");
-
-                case 0:
-                    return a;
-                case 1:
-                    return b;
-                case 2:
-                    return c;
-            }
+                0 => a,
+                1 => b,
+                2 => c,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0, 1, or 2.")
+            };
         }
 
+        /// <summary>
+        /// Returns the value at the specified index from the provided arguments.
+        /// </summary>
+        /// <typeparam name="T">The type of values.</typeparam>
+        /// <param name="index">The zero-based index of the value to return.</param>
+        /// <param name="a">First value.</param>
+        /// <param name="b">Second value.</param>
+        /// <param name="c">Third value.</param>
+        /// <param name="d">Fourth value.</param>
+        /// <returns>The value at the specified index.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when index is not 0-3.</exception>
         public static T GiveMe<T>(int index, T a, T b, T c, T d)
         {
-            switch (index)
+            return index switch
             {
-                default:
-                    throw new Exception("Index was out of range!");
-
-                case 0:
-                    return a;
-                case 1:
-                    return b;
-                case 2:
-                    return c;
-                case 3:
-                    return d;
-            }
+                0 => a,
+                1 => b,
+                2 => c,
+                3 => d,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0-3.")
+            };
         }
 
+        /// <summary>
+        /// Returns the value at the specified index from the provided arguments.
+        /// </summary>
+        /// <typeparam name="T">The type of values.</typeparam>
+        /// <param name="index">The zero-based index of the value to return.</param>
+        /// <param name="a">First value.</param>
+        /// <param name="b">Second value.</param>
+        /// <param name="c">Third value.</param>
+        /// <param name="d">Fourth value.</param>
+        /// <param name="e">Fifth value.</param>
+        /// <returns>The value at the specified index.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when index is not 0-4.</exception>
         public static T GiveMe<T>(int index, T a, T b, T c, T d, T e)
         {
-            switch (index)
+            return index switch
             {
-                default:
-                    throw new Exception("Index was out of range!");
-
-                case 0:
-                    return a;
-                case 1:
-                    return b;
-                case 2:
-                    return c;
-                case 3:
-                    return d;
-                case 4:
-                    return e;
-            }
+                0 => a,
+                1 => b,
+                2 => c,
+                3 => d,
+                4 => e,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0-4.")
+            };
         }
 
+        /// <summary>
+        /// Returns the value at the specified index from the provided arguments.
+        /// </summary>
+        /// <typeparam name="T">The type of values.</typeparam>
+        /// <param name="index">The zero-based index of the value to return.</param>
+        /// <param name="a">First value.</param>
+        /// <param name="b">Second value.</param>
+        /// <param name="c">Third value.</param>
+        /// <param name="d">Fourth value.</param>
+        /// <param name="e">Fifth value.</param>
+        /// <param name="f">Sixth value.</param>
+        /// <returns>The value at the specified index.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when index is not 0-5.</exception>
         public static T GiveMe<T>(int index, T a, T b, T c, T d, T e, T f)
         {
-            switch (index)
+            return index switch
             {
-                default:
-                    throw new Exception("Index was out of range!");
-
-                case 0:
-                    return a;
-                case 1:
-                    return b;
-                case 2:
-                    return c;
-                case 3:
-                    return d;
-                case 4:
-                    return e;
-                case 5:
-                    return f;
-            }
+                0 => a,
+                1 => b,
+                2 => c,
+                3 => d,
+                4 => e,
+                5 => f,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0-5.")
+            };
         }
 
         #endregion
 
         #region Random
 
-        public static Random Random = new Random();
-        private static Stack<Random> randomStack = new Stack<Random>();
+        /// <summary>
+        /// Global random number generator instance. Thread-safe but not recommended for multi-threaded scenarios.
+        /// </summary>
+        public static Random Random { get; set; } = new();
+        
+        /// <summary>
+        /// Stack for managing nested random number generator states.
+        /// </summary>
+        private static readonly Stack<Random> randomStack = new();
 
+        /// <summary>
+        /// Pushes the current random number generator onto the stack and sets a new one with the specified seed.
+        /// </summary>
+        /// <param name="newSeed">The seed for the new random number generator.</param>
         public static void PushRandom(int newSeed)
         {
-            randomStack.Push(Calc.Random);
-            Calc.Random = new Random(newSeed);
+            randomStack.Push(Random);
+            Random = new Random(newSeed);
         }
 
+        /// <summary>
+        /// Pushes the current random number generator onto the stack and sets the specified one.
+        /// </summary>
+        /// <param name="random">The random number generator to use.</param>
+        /// <exception cref="ArgumentNullException">Thrown when random is null.</exception>
         public static void PushRandom(Random random)
         {
-            randomStack.Push(Calc.Random);
-            Calc.Random = random;
+            ArgumentNullException.ThrowIfNull(random);
+            randomStack.Push(Random);
+            Random = random;
         }
 
+        /// <summary>
+        /// Pushes the current random number generator onto the stack and creates a new one with a random seed.
+        /// </summary>
         public static void PushRandom()
         {
-            randomStack.Push(Calc.Random);
-            Calc.Random = new Random();
+            randomStack.Push(Random);
+            Random = new Random();
         }
 
+        /// <summary>
+        /// Pops the previous random number generator from the stack and restores it.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the stack is empty.</exception>
         public static void PopRandom()
         {
-            Calc.Random = randomStack.Pop();
+            if (randomStack.Count == 0)
+                throw new InvalidOperationException("No random number generator to pop from the stack.");
+                
+            Random = randomStack.Pop();
         }
 
         #region Choose
 
+        /// <summary>
+        /// Randomly chooses one of the two provided values.
+        /// </summary>
+        /// <typeparam name="T">The type of values to choose from.</typeparam>
+        /// <param name="random">The random number generator to use.</param>
+        /// <param name="a">First option.</param>
+        /// <param name="b">Second option.</param>
+        /// <returns>One of the provided values, chosen randomly.</returns>
         public static T Choose<T>(this Random random, T a, T b)
         {
-            return GiveMe<T>(random.Next(2), a, b);
+            return GiveMe(random.Next(2), a, b);
         }
 
+        /// <summary>
+        /// Randomly chooses one of the three provided values.
+        /// </summary>
+        /// <typeparam name="T">The type of values to choose from.</typeparam>
+        /// <param name="random">The random number generator to use.</param>
+        /// <param name="a">First option.</param>
+        /// <param name="b">Second option.</param>
+        /// <param name="c">Third option.</param>
+        /// <returns>One of the provided values, chosen randomly.</returns>
         public static T Choose<T>(this Random random, T a, T b, T c)
         {
-            return GiveMe<T>(random.Next(3), a, b, c);
+            return GiveMe(random.Next(3), a, b, c);
         }
 
+        /// <summary>
+        /// Randomly chooses one of the four provided values.
+        /// </summary>
+        /// <typeparam name="T">The type of values to choose from.</typeparam>
+        /// <param name="random">The random number generator to use.</param>
+        /// <param name="a">First option.</param>
+        /// <param name="b">Second option.</param>
+        /// <param name="c">Third option.</param>
+        /// <param name="d">Fourth option.</param>
+        /// <returns>One of the provided values, chosen randomly.</returns>
         public static T Choose<T>(this Random random, T a, T b, T c, T d)
         {
-            return GiveMe<T>(random.Next(4), a, b, c, d);
+            return GiveMe(random.Next(4), a, b, c, d);
         }
 
+        /// <summary>
+        /// Randomly chooses one of the five provided values.
+        /// </summary>
+        /// <typeparam name="T">The type of values to choose from.</typeparam>
+        /// <param name="random">The random number generator to use.</param>
+        /// <param name="a">First option.</param>
+        /// <param name="b">Second option.</param>
+        /// <param name="c">Third option.</param>
+        /// <param name="d">Fourth option.</param>
+        /// <param name="e">Fifth option.</param>
+        /// <returns>One of the provided values, chosen randomly.</returns>
         public static T Choose<T>(this Random random, T a, T b, T c, T d, T e)
         {
-            return GiveMe<T>(random.Next(5), a, b, c, d, e);
+            return GiveMe(random.Next(5), a, b, c, d, e);
         }
 
+        /// <summary>
+        /// Randomly chooses one of the six provided values.
+        /// </summary>
+        /// <typeparam name="T">The type of values to choose from.</typeparam>
+        /// <param name="random">The random number generator to use.</param>
+        /// <param name="a">First option.</param>
+        /// <param name="b">Second option.</param>
+        /// <param name="c">Third option.</param>
+        /// <param name="d">Fourth option.</param>
+        /// <param name="e">Fifth option.</param>
+        /// <param name="f">Sixth option.</param>
+        /// <returns>One of the provided values, chosen randomly.</returns>
         public static T Choose<T>(this Random random, T a, T b, T c, T d, T e, T f)
         {
-            return GiveMe<T>(random.Next(6), a, b, c, d, e, f);
+            return GiveMe(random.Next(6), a, b, c, d, e, f);
         }
 
+        /// <summary>
+        /// Randomly chooses one value from the provided array.
+        /// </summary>
+        /// <typeparam name="T">The type of values to choose from.</typeparam>
+        /// <param name="random">The random number generator to use.</param>
+        /// <param name="choices">The array of values to choose from.</param>
+        /// <returns>One of the provided values, chosen randomly.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when choices is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when choices array is empty.</exception>
         public static T Choose<T>(this Random random, params T[] choices)
         {
+            ArgumentNullException.ThrowIfNull(choices);
+            if (choices.Length == 0)
+                throw new ArgumentException("Choices array cannot be empty.", nameof(choices));
+                
             return choices[random.Next(choices.Length)];
         }
 
+        /// <summary>
+        /// Randomly chooses one value from the provided list.
+        /// </summary>
+        /// <typeparam name="T">The type of values to choose from.</typeparam>
+        /// <param name="random">The random number generator to use.</param>
+        /// <param name="choices">The list of values to choose from.</param>
+        /// <returns>One of the provided values, chosen randomly.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when choices is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when choices list is empty.</exception>
         public static T Choose<T>(this Random random, List<T> choices)
         {
+            ArgumentNullException.ThrowIfNull(choices);
+            if (choices.Count == 0)
+                throw new ArgumentException("Choices list cannot be empty.", nameof(choices));
+                
             return choices[random.Next(choices.Count)];
+        }
+
+        /// <summary>
+        /// Randomly chooses one value from the provided span.
+        /// </summary>
+        /// <typeparam name="T">The type of values to choose from.</typeparam>
+        /// <param name="random">The random number generator to use.</param>
+        /// <param name="choices">The span of values to choose from.</param>
+        /// <returns>One of the provided values, chosen randomly.</returns>
+        /// <exception cref="ArgumentException">Thrown when choices span is empty.</exception>
+        public static T Choose<T>(this Random random, ReadOnlySpan<T> choices)
+        {
+            if (choices.Length == 0)
+                throw new ArgumentException("Choices span cannot be empty.", nameof(choices));
+                
+            return choices[random.Next(choices.Length)];
         }
 
         #endregion

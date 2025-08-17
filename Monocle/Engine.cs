@@ -1,3 +1,4 @@
+#nullable enable
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -7,73 +8,181 @@ using System.Runtime;
 
 namespace Monocle
 {
+    /// <summary>
+    /// Core game engine class that manages the game loop, graphics, input, and scene management.
+    /// Inherits from MonoGame's Game class and provides the foundation for all Monocle-based games.
+    /// Modernized for .NET 9 with nullable reference types and improved patterns.
+    /// </summary>
     public class Engine : Game
     {
 
-        public string Title;
-        public Version Version;
+        /// <summary>
+        /// The title of the game window and application.
+        /// </summary>
+        public string Title { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// The version of the game application.
+        /// </summary>
+        public Version? Version { get; set; }
 
         // references
-        public static Engine Instance { get; private set; }
-        public static GraphicsDeviceManager Graphics { get; private set; }
-        public static Commands Commands { get; private set; }
-        public static Pooler Pooler { get; private set; }
-        public static Action OverloadGameLoop;
+        /// <summary>
+        /// The singleton instance of the Engine. Provides global access to the engine throughout the application.
+        /// </summary>
+        public static Engine? Instance { get; private set; }
+        
+        /// <summary>
+        /// The MonoGame graphics device manager for handling graphics settings and device management.
+        /// </summary>
+        public static GraphicsDeviceManager? Graphics { get; private set; }
+        
+        /// <summary>
+        /// The command system for handling debug commands and console functionality.
+        /// </summary>
+        public static Commands? Commands { get; private set; }
+        
+        /// <summary>
+        /// The object pooler for efficient memory management and object reuse.
+        /// </summary>
+        public static Pooler? Pooler { get; private set; }
+        
+        /// <summary>
+        /// Optional action to override the default game loop behavior.
+        /// </summary>
+        public static Action? OverloadGameLoop { get; set; }
 
         // screen size
+        /// <summary>
+        /// The logical width of the game screen in pixels.
+        /// </summary>
         public static int Width { get; private set; }
+        
+        /// <summary>
+        /// The logical height of the game screen in pixels.
+        /// </summary>
         public static int Height { get; private set; }
+        
+        /// <summary>
+        /// The actual viewport width after scaling and padding.
+        /// </summary>
         public static int ViewWidth { get; private set; }
+        
+        /// <summary>
+        /// The actual viewport height after scaling and padding.
+        /// </summary>
         public static int ViewHeight { get; private set; }
+        
+        /// <summary>
+        /// The padding around the viewport for maintaining aspect ratio.
+        /// Setting this value will update the view immediately.
+        /// </summary>
         public static int ViewPadding
         {
-            get { return viewPadding; }
+            get => viewPadding;
             set
             {
                 viewPadding = value;
-                Instance.UpdateView();
+                Instance?.UpdateView();
             }
         }
         private static int viewPadding = 0;
         private static bool resizing;
 
         // time
+        /// <summary>
+        /// The time in seconds since the last frame, affected by TimeRate and FreezeTimer.
+        /// </summary>
         public static float DeltaTime { get; private set; }
+        
+        /// <summary>
+        /// The raw time in seconds since the last frame, unaffected by TimeRate or FreezeTimer.
+        /// </summary>
         public static float RawDeltaTime { get; private set; }
-        public static float TimeRate = 1f;
-        public static float FreezeTimer;
-        public static int FPS;
+        
+        /// <summary>
+        /// Multiplier for time scaling. 1.0 is normal speed, 0.5 is half speed, 2.0 is double speed.
+        /// </summary>
+        public static float TimeRate { get; set; } = 1f;
+        
+        /// <summary>
+        /// Timer for freezing game time. While greater than 0, DeltaTime will be 0.
+        /// </summary>
+        public static float FreezeTimer { get; set; }
+        
+        /// <summary>
+        /// Current frames per second, updated approximately once per second.
+        /// </summary>
+        public static int FPS { get; private set; }
+        
         private TimeSpan counterElapsed = TimeSpan.Zero;
         private int fpsCounter = 0;
 
         // content directory
 #if !CONSOLE
-        private static string AssemblyDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        private static readonly string AssemblyDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty;
 #endif
 
+        /// <summary>
+        /// Gets the full path to the content directory, handling platform-specific paths.
+        /// </summary>
         public static string ContentDirectory
         {
+            get
+            {
 #if PS4
-            get { return Path.Combine("/app0/", Instance.Content.RootDirectory); }
+                return Path.Combine("/app0/", Instance?.Content.RootDirectory ?? string.Empty);
 #elif NSWITCH
-            get { return Path.Combine("rom:/", Instance.Content.RootDirectory); }
+                return Path.Combine("rom:/", Instance?.Content.RootDirectory ?? string.Empty);
 #elif XBOXONE
-            get { return Instance.Content.RootDirectory; }
+                return Instance?.Content.RootDirectory ?? string.Empty;
 #else
-            get { return Path.Combine(AssemblyDirectory, Instance.Content.RootDirectory); }
+                return Path.Combine(AssemblyDirectory, Instance?.Content.RootDirectory ?? string.Empty);
 #endif
+            }
         }
 
         // util
-        public static Color ClearColor;
-        public static bool ExitOnEscapeKeypress;
+        /// <summary>
+        /// The background color used when clearing the screen each frame.
+        /// </summary>
+        public static Color ClearColor { get; set; }
+        
+        /// <summary>
+        /// Whether the game should exit when the Escape key is pressed.
+        /// </summary>
+        public static bool ExitOnEscapeKeypress { get; set; }
 
         // scene
-        private Scene scene;
-        private Scene nextScene;
+        /// <summary>
+        /// The currently active scene being updated and rendered.
+        /// </summary>
+        private Scene? scene;
         
+        /// <summary>
+        /// The scene that will become active at the start of the next frame.
+        /// </summary>
+        private Scene? nextScene;
+        
+        /// <summary>
+        /// Initializes a new instance of the Engine with the specified display settings.
+        /// </summary>
+        /// <param name="width">The logical width of the game screen.</param>
+        /// <param name="height">The logical height of the game screen.</param>
+        /// <param name="windowWidth">The initial window width in pixels.</param>
+        /// <param name="windowHeight">The initial window height in pixels.</param>
+        /// <param name="windowTitle">The title to display in the window title bar.</param>
+        /// <param name="fullscreen">Whether to start in fullscreen mode.</param>
+        /// <exception cref="ArgumentException">Thrown when width or height are not positive.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when windowTitle is null.</exception>
         public Engine(int width, int height, int windowWidth, int windowHeight, string windowTitle, bool fullscreen)
         {
+            ArgumentNullException.ThrowIfNull(windowTitle);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowWidth);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowHeight);
+            
             Instance = this;
 
             Title = Window.Title = windowTitle;
@@ -125,14 +234,22 @@ namespace Monocle
         }
 
 #if !CONSOLE
-        protected virtual void OnClientSizeChanged(object sender, EventArgs e)
+        /// <summary>
+        /// Handles window resize events to update the graphics buffer and view settings.
+        /// </summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        protected virtual void OnClientSizeChanged(object? sender, EventArgs e)
         {
             if (Window.ClientBounds.Width > 0 && Window.ClientBounds.Height > 0 && !resizing)
             {
                 resizing = true;
 
-                Graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
-                Graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+                if (Graphics != null)
+                {
+                    Graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+                    Graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+                }
                 UpdateView();
 
                 resizing = false;
@@ -140,27 +257,40 @@ namespace Monocle
         }
 #endif
 
-        protected virtual void OnGraphicsReset(object sender, EventArgs e)
+        /// <summary>
+        /// Handles graphics device reset events to restore graphics resources.
+        /// </summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        protected virtual void OnGraphicsReset(object? sender, EventArgs e)
         {
             UpdateView();
 
-            if (scene != null)
-                scene.HandleGraphicsReset();
+            scene?.HandleGraphicsReset();
             if (nextScene != null && nextScene != scene)
                 nextScene.HandleGraphicsReset();
         }
 
-        protected virtual void OnGraphicsCreate(object sender, EventArgs e)
+        /// <summary>
+        /// Handles graphics device creation events to initialize graphics resources.
+        /// </summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        protected virtual void OnGraphicsCreate(object? sender, EventArgs e)
         {
             UpdateView();
 
-            if (scene != null)
-                scene.HandleGraphicsCreate();
+            scene?.HandleGraphicsCreate();
             if (nextScene != null && nextScene != scene)
                 nextScene.HandleGraphicsCreate();
         }
 
-        protected override void OnActivated(object sender, EventArgs args)
+        /// <summary>
+        /// Called when the game window gains focus.
+        /// </summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="args">The event arguments.</param>
+        protected override void OnActivated(object? sender, EventArgs args)
         {
             base.OnActivated(sender, args);
 
