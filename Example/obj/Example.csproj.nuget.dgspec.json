@@ -1,0 +1,150 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/shaneross/Documents/GitHub/monocles/Example/Example.csproj": {}
+  },
+  "projects": {
+    "/Users/shaneross/Documents/GitHub/monocles/Example/Example.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/shaneross/Documents/GitHub/monocles/Example/Example.csproj",
+        "projectName": "Example",
+        "projectPath": "/Users/shaneross/Documents/GitHub/monocles/Example/Example.csproj",
+        "packagesPath": "/Users/shaneross/.nuget/packages/",
+        "outputPath": "/Users/shaneross/Documents/GitHub/monocles/Example/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/shaneross/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "/Users/shaneross/Documents/GitHub/monocles/Monocle/Monocle.csproj": {
+                "projectPath": "/Users/shaneross/Documents/GitHub/monocles/Monocle/Monocle.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "MonoGame.Content.Builder.Task": {
+              "target": "Package",
+              "version": "[3.8.2.1105, )"
+            },
+            "MonoGame.Framework.DesktopGL": {
+              "target": "Package",
+              "version": "[3.8.2.1105, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/shaneross/Documents/GitHub/monocles/Monocle/Monocle.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/shaneross/Documents/GitHub/monocles/Monocle/Monocle.csproj",
+        "projectName": "Monocle",
+        "projectPath": "/Users/shaneross/Documents/GitHub/monocles/Monocle/Monocle.csproj",
+        "packagesPath": "/Users/shaneross/.nuget/packages/",
+        "outputPath": "/Users/shaneross/Documents/GitHub/monocles/Monocle/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/shaneross/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "MonoGame.Content.Builder.Task": {
+              "target": "Package",
+              "version": "[3.8.2.1105, )"
+            },
+            "MonoGame.Framework.DesktopGL": {
+              "target": "Package",
+              "version": "[3.8.2.1105, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

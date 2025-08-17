@@ -1,0 +1,57 @@
+---
+description: This rule needs to be used when documenting C# classes.
+alwaysApply: false
+---
+## 📘 Cursor Rules for C# Documentation
+
+### 1. **General Documentation Standards**
+
+* Always use **XML documentation comments** (`///`) for all public classes, interfaces, enums, methods, properties, fields, and events.
+* Private and internal members should also be documented if they are non-trivial.
+* Comments must be written in **clear, concise English**, describing *what* the class/member does and, if not obvious, *why* it exists.
+
+### 2. **Class & Interface Documentation**
+
+* Every class, interface, struct, or enum **must begin with a `<summary>` tag** describing its purpose and role in the system.
+* Include `<remarks>` if there are important design decisions, patterns used, or constraints.
+* If the class implements design patterns (e.g., Singleton, Factory), explicitly mention this.
+* For enums, describe the overall purpose and **document each value**.
+
+### 3. **Method Documentation**
+
+* Each method must include:
+
+  * `<summary>` explaining its behavior.
+  * `<param>` tags for each parameter, including **units**, **expected ranges**, and **special cases** if applicable.
+  * `<returns>` tag if the method returns a value, describing what is returned and in what conditions.
+  * `<exception>` tags for all thrown exceptions, including when they occur.
+
+### 4. **Property & Field Documentation**
+
+* Properties must have `<summary>` describing what they represent.
+* For computed properties, explain how the value is derived.
+* For public fields (discouraged unless readonly constants), document their purpose and constraints.
+
+### 5. **Events & Delegates**
+
+* Events must describe *when* they are raised and what subscribers can expect.
+* Delegates must describe the expected method signature meaning.
+
+### 6. **Consistency Rules**
+
+* Use **present tense** and **active voice** ("Gets the current frame index", not "Will get").
+* Avoid repeating the method/property name in the `<summary>` ("Gets the X" instead of "This method gets the X").
+* Keep summaries **short (1–2 sentences)**, but include `<remarks>` for extended notes.
+* Prefer **domain-specific terms** over generic ones.
+
+### 7. **Examples**
+
+* For complex classes or methods, include `<example>` sections with sample usage.
+* Code examples must compile and follow the project’s coding conventions.
+
+### 8. **Automation Guidance for Cursor**
+
+* Cursor should **never remove existing documentation**, only update or add missing ones.
+* When generating docs, Cursor should analyze **method signatures, naming conventions, and code body** to infer meaningful documentation.
+* Cursor should prefer **functionality-based descriptions** (what the code *does*), not implementation details (how it does it).
+
