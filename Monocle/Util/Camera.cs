@@ -4,6 +4,10 @@ using System;
 
 namespace Monocle
 {
+    /// <summary>
+    /// Represents a 2D camera for rendering with support for position, rotation, zoom, and viewport management.
+    /// Provides transformation matrices for converting between screen and world coordinates.
+    /// </summary>
     public class Camera
     {
         private Matrix matrix = Matrix.Identity;
@@ -15,8 +19,14 @@ namespace Monocle
         private Vector2 origin = Vector2.Zero;
         private float angle = 0;
 
+        /// <summary>
+        /// The viewport defining the visible area and dimensions for this camera.
+        /// </summary>
         public Viewport Viewport;
 
+        /// <summary>
+        /// Initializes a new Camera with viewport dimensions matching the current engine size.
+        /// </summary>
         public Camera()
         {
             Viewport = new Viewport();
@@ -25,6 +35,11 @@ namespace Monocle
             UpdateMatrices();
         }
 
+        /// <summary>
+        /// Initializes a new Camera with the specified viewport dimensions.
+        /// </summary>
+        /// <param name="width">The width of the camera viewport in pixels.</param>
+        /// <param name="height">The height of the camera viewport in pixels.</param>
         public Camera(int width, int height)
         {
             Viewport = new Viewport();
@@ -33,6 +48,10 @@ namespace Monocle
             UpdateMatrices();
         }
 
+        /// <summary>
+        /// Returns a string representation of the camera's current state including viewport, position, origin, zoom, and angle.
+        /// </summary>
+        /// <returns>A formatted string describing the camera's properties.</returns>
         public override string ToString()
         {
             return "Camera:\n\tViewport: { " + Viewport.X + ", " + Viewport.Y + ", " + Viewport.Width + ", " + Viewport.Height +
@@ -42,6 +61,10 @@ namespace Monocle
                 " }\n\tAngle: " + angle;
         }
 
+        /// <summary>
+        /// Updates the transformation and inverse transformation matrices based on current camera properties.
+        /// Applies translation, rotation, scaling, and origin transformations in the correct order.
+        /// </summary>
         private void UpdateMatrices()
         {
             matrix = Matrix.Identity *
@@ -55,6 +78,10 @@ namespace Monocle
             changed = false;
         }
 
+        /// <summary>
+        /// Copies all transformation properties from another camera instance.
+        /// </summary>
+        /// <param name="other">The camera to copy properties from.</param>
         public void CopyFrom(Camera other)
         {
             position = other.position;
@@ -64,6 +91,10 @@ namespace Monocle
             changed = true;
         }
 
+        /// <summary>
+        /// Gets the transformation matrix for converting from world coordinates to screen coordinates.
+        /// Matrix is recalculated if camera properties have changed.
+        /// </summary>
         public Matrix Matrix
         {
             get
@@ -74,6 +105,10 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets the inverse transformation matrix for converting from screen coordinates to world coordinates.
+        /// Matrix is recalculated if camera properties have changed.
+        /// </summary>
         public Matrix Inverse
         {
             get
@@ -84,6 +119,9 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets or sets the world position of the camera.
+        /// </summary>
         public Vector2 Position
         {
             get { return position; }
@@ -94,6 +132,10 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets or sets the origin point for camera transformations in screen coordinates.
+        /// This is the pivot point for rotation and scaling operations.
+        /// </summary>
         public Vector2 Origin
         {
             get { return origin; }
@@ -104,6 +146,9 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets or sets the X component of the camera's world position.
+        /// </summary>
         public float X
         {
             get { return position.X; }
@@ -114,6 +159,9 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets or sets the Y component of the camera's world position.
+        /// </summary>
         public float Y
         {
             get { return position.Y; }
@@ -124,6 +172,10 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets or sets the uniform zoom level of the camera.
+        /// Values greater than 1.0 zoom in, values less than 1.0 zoom out.
+        /// </summary>
         public float Zoom
         {
             get { return zoom.X; }
@@ -134,6 +186,9 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets or sets the rotation angle of the camera in radians.
+        /// </summary>
         public float Angle
         {
             get { return angle; }
@@ -144,6 +199,9 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets or sets the world X coordinate of the left edge of the camera's view.
+        /// </summary>
         public float Left
         {
             get
@@ -161,6 +219,11 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets the world X coordinate of the right edge of the camera's view.
+        /// Setting this property is not implemented.
+        /// </summary>
+        /// <exception cref="NotImplementedException">Thrown when attempting to set this property.</exception>
         public float Right
         {
             get
@@ -176,6 +239,9 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets or sets the world Y coordinate of the top edge of the camera's view.
+        /// </summary>
         public float Top
         {
             get
@@ -193,6 +259,11 @@ namespace Monocle
             }
         }
 
+        /// <summary>
+        /// Gets the world Y coordinate of the bottom edge of the camera's view.
+        /// Setting this property is not implemented.
+        /// </summary>
+        /// <exception cref="NotImplementedException">Thrown when attempting to set this property.</exception>
         public float Bottom
         {
             get
@@ -212,12 +283,19 @@ namespace Monocle
          *  Utils
          */
 
+        /// <summary>
+        /// Sets the camera origin to the center of the viewport.
+        /// This makes rotation and scaling occur around the center of the screen.
+        /// </summary>
         public void CenterOrigin()
         {
             origin = new Vector2((float)Viewport.Width / 2, (float)Viewport.Height / 2);
             changed = true;
         }
 
+        /// <summary>
+        /// Rounds the camera position to the nearest integer values to prevent sub-pixel rendering artifacts.
+        /// </summary>
         public void RoundPosition()
         {
             position.X = (float)Math.Round(position.X);
@@ -225,21 +303,42 @@ namespace Monocle
             changed = true;
         }
 
+        /// <summary>
+        /// Converts a position from screen coordinates to world coordinates.
+        /// </summary>
+        /// <param name="position">The position in screen coordinates.</param>
+        /// <returns>The position in world coordinates.</returns>
         public Vector2 ScreenToCamera(Vector2 position)
         {
             return Vector2.Transform(position, Inverse);
         }
 
+        /// <summary>
+        /// Converts a position from world coordinates to screen coordinates.
+        /// </summary>
+        /// <param name="position">The position in world coordinates.</param>
+        /// <returns>The position in screen coordinates.</returns>
         public Vector2 CameraToScreen(Vector2 position)
         {
             return Vector2.Transform(position, Matrix);
         }
 
+        /// <summary>
+        /// Smoothly moves the camera toward a target position using linear interpolation.
+        /// </summary>
+        /// <param name="position">The target position to move toward.</param>
+        /// <param name="ease">The interpolation factor between 0 and 1. Higher values move faster.</param>
         public void Approach(Vector2 position, float ease)
         {
             Position += (position - Position) * ease;
         }
 
+        /// <summary>
+        /// Smoothly moves the camera toward a target position with a maximum movement distance per call.
+        /// </summary>
+        /// <param name="position">The target position to move toward.</param>
+        /// <param name="ease">The interpolation factor between 0 and 1. Higher values move faster.</param>
+        /// <param name="maxDistance">The maximum distance the camera can move in a single call.</param>
         public void Approach(Vector2 position, float ease, float maxDistance)
         {
             Vector2 move = (position - Position) * ease;
