@@ -529,7 +529,13 @@ namespace Monocle
 
         public bool CollideCheck<T>(Vector2 at) where T : Entity
         {
-            return Collide.Check(this, Scene.Tracker.Entities[typeof(T)], at);
+#if DEBUG
+            if (Scene == null)
+                throw new Exception("Can't collide check an Entity against tracked Entities when it is not a member of a Scene");
+            else if (!Scene.Tracker.Entities.ContainsKey(typeof(T)))
+                throw new Exception("Can't collide check an Entity against an untracked Entity type");
+#endif
+            return Collide.Check(this, Scene!.Tracker.Entities[typeof(T)], at);
         }
 
         public bool CollideCheck<T, Exclude>() where T : Entity where Exclude : Entity
@@ -659,7 +665,7 @@ namespace Monocle
             return Collide.First(this, Scene[tag], at);
         }
 
-        public T CollideFirst<T>() where T : Entity
+        public T? CollideFirst<T>() where T : Entity
         {
 #if DEBUG
             if (Scene == null)
@@ -670,7 +676,7 @@ namespace Monocle
             return Collide.First(this, Scene.Tracker.Entities[typeof(T)]) as T;
         }
 
-        public T CollideFirst<T>(Vector2 at) where T : Entity
+        public T? CollideFirst<T>(Vector2 at) where T : Entity
         {
 #if DEBUG
             if (Scene == null)
@@ -681,7 +687,7 @@ namespace Monocle
             return Collide.First(this, Scene.Tracker.Entities[typeof(T)], at) as T;
         }
 
-        public T CollideFirstByComponent<T>() where T : CollidableComponent
+        public T? CollideFirstByComponent<T>() where T : CollidableComponent
         {
 #if DEBUG
             if (Scene == null)
@@ -696,7 +702,7 @@ namespace Monocle
             return null;
         }
 
-        public T CollideFirstByComponent<T>(Vector2 at) where T : CollidableComponent
+        public T? CollideFirstByComponent<T>(Vector2 at) where T : CollidableComponent
         {
 #if DEBUG
             if (Scene == null)
@@ -715,20 +721,20 @@ namespace Monocle
 
         #region Collide FirstOutside
 
-        public Entity CollideFirstOutside(BitTag tag, Vector2 at)
+        public Entity? CollideFirstOutside(BitTag tag, Vector2 at)
         {
 #if DEBUG
             if (Scene == null)
                 throw new Exception("Can't collide check an Entity against a tag list when it is not a member of a Scene");
 #endif
 
-            foreach (var entity in Scene[tag])
+            foreach (var entity in Scene![tag])
                 if (!Collide.Check(this, entity) && Collide.Check(this, entity, at))
                     return entity;
             return null;
         }
 
-        public T CollideFirstOutside<T>(Vector2 at) where T : Entity
+        public T? CollideFirstOutside<T>(Vector2 at) where T : Entity
         {
 #if DEBUG
             if (Scene == null)
@@ -743,7 +749,7 @@ namespace Monocle
             return null;
         }
 
-        public T CollideFirstOutsideByComponent<T>(Vector2 at) where T : CollidableComponent
+        public T? CollideFirstOutsideByComponent<T>(Vector2 at) where T : CollidableComponent
         {
 #if DEBUG
             if (Scene == null)
@@ -829,7 +835,8 @@ namespace Monocle
             List<T> list = new List<T>();
             foreach (var component in Scene.Tracker.CollidableComponents[typeof(T)])
                 if (Collide.Check(this, component))
-                    list.Add(component as T);
+                    if (component is T typed)
+                        list.Add(typed);
             return list;
         }
 
@@ -903,7 +910,8 @@ namespace Monocle
             {
                 if (CollideCheck(other))
                 {
-                    action(other as T);
+                    if (other is T typed)
+                        action(typed);
                     hit = true;
                 }
             }
@@ -927,7 +935,8 @@ namespace Monocle
             {
                 if (CollideCheck(other))
                 {
-                    action(other as T);
+                    if (other is T typed)
+                        action(typed);
                     hit = true;
                 }
             }
@@ -950,7 +959,8 @@ namespace Monocle
             {
                 if (CollideCheck(component))
                 {
-                    action(component as T);
+                    if (component is T typed)
+                        action(typed);
                     hit = true;
                 }
             }
@@ -974,7 +984,8 @@ namespace Monocle
             {
                 if (CollideCheck(component))
                 {
-                    action(component as T);
+                    if (component is T typed)
+                        action(typed);
                     hit = true;
                 }
             }
@@ -1104,15 +1115,15 @@ namespace Monocle
             return closest;
         }
 
-        public Entity Closest(BitTag tag)
+        public Entity? Closest(BitTag tag)
         {
-            var list = Scene[tag];
-            Entity closest = null;
+            var list = Scene?[tag];
+            Entity? closest = null;
             float dist;
 
-            if (list.Count >= 1)
+            if (list?.Count >= 1)
             {
-                closest = list[0];
+                closest = list![0];
                 dist = Vector2.DistanceSquared(Position, closest.Position);
 
                 for (int i = 1; i < list.Count; i++)

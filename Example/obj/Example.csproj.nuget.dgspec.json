@@ -48,10 +48,6 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "MonoGame.Content.Builder.Task": {
-              "target": "Package",
-              "version": "[3.8.2.1105, )"
-            },
             "MonoGame.Framework.DesktopGL": {
               "target": "Package",
               "version": "[3.8.2.1105, )"
@@ -117,10 +113,6 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "MonoGame.Content.Builder.Task": {
-              "target": "Package",
-              "version": "[3.8.2.1105, )"
-            },
             "MonoGame.Framework.DesktopGL": {
               "target": "Package",
               "version": "[3.8.2.1105, )"

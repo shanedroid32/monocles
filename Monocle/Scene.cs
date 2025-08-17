@@ -677,7 +677,8 @@ namespace Monocle
 
             for (int i = 0; i < list.Count; i++)
                 if (list[i].Collidable && list[i].CollidePoint(point))
-                    hits.Add(list[i] as T);
+                    if (list[i] is T typed)
+                        hits.Add(typed);
         }
 
         public void CollideInto<T>(Vector2 from, Vector2 to, List<T> hits) where T : Entity
@@ -686,7 +687,8 @@ namespace Monocle
 
             for (int i = 0; i < list.Count; i++)
                 if (list[i].Collidable && list[i].CollideLine(from, to))
-                    hits.Add(list[i] as T);
+                    if (list[i] is T typed)
+                        hits.Add(typed);
         }
 
         public void CollideInto<T>(Rectangle rect, List<T> hits) where T : Entity
@@ -695,7 +697,8 @@ namespace Monocle
 
             for (int i = 0; i < list.Count; i++)
                 if (list[i].Collidable && list[i].CollideRect(rect))
-                    hits.Add(list[i] as T);
+                    if (list[i] is T typed)
+                        hits.Add(typed);
         }
 
         public List<T> CollideAll<T>(Vector2 point) where T : Entity
@@ -725,7 +728,8 @@ namespace Monocle
 
             for (int i = 0; i < list.Count; i++)
                 if (list[i].Collidable && list[i].CollidePoint(point))
-                    action(list[i] as T);
+                    if (list[i] is T typed)
+                        action(typed);
         }
 
         public void CollideDo<T>(Vector2 from, Vector2 to, Action<T> action) where T : Entity
@@ -734,7 +738,8 @@ namespace Monocle
 
             for (int i = 0; i < list.Count; i++)
                 if (list[i].Collidable && list[i].CollideLine(from, to))
-                    action(list[i] as T);
+                    if (list[i] is T typed)
+                        action(typed);
         }
 
         public void CollideDo<T>(Rectangle rect, Action<T> action) where T : Entity
@@ -743,7 +748,8 @@ namespace Monocle
 
             for (int i = 0; i < list.Count; i++)
                 if (list[i].Collidable && list[i].CollideRect(rect))
-                    action(list[i] as T);
+                    if (list[i] is T typed)
+                        action(typed);
         }
 
         public Vector2 LineWalkCheck<T>(Vector2 from, Vector2 to, float precision) where T : Entity
@@ -776,7 +782,7 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollidePoint(point))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollidePoint(point) == true)
                     return true;
             return false;
         }
@@ -786,7 +792,7 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideLine(from, to))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideLine(from, to) == true)
                     return true;
             return false;
         }
@@ -796,37 +802,37 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideRect(rect))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideRect(rect) == true)
                     return true;
             return false;
         }
 
-        public T CollideFirstByComponent<T>(Vector2 point) where T : Component
+        public T? CollideFirstByComponent<T>(Vector2 point) where T : Component
         {
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollidePoint(point))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollidePoint(point) == true)
                     return list[i] as T;
             return null;
         }
 
-        public T CollideFirstByComponent<T>(Vector2 from, Vector2 to) where T : Component
+        public T? CollideFirstByComponent<T>(Vector2 from, Vector2 to) where T : Component
         {
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideLine(from, to))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideLine(from, to) == true)
                     return list[i] as T;
             return null;
         }
 
-        public T CollideFirstByComponent<T>(Rectangle rect) where T : Component
+        public T? CollideFirstByComponent<T>(Rectangle rect) where T : Component
         {
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideRect(rect))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideRect(rect) == true)
                     return list[i] as T;
             return null;
         }
@@ -836,7 +842,7 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollidePoint(point))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollidePoint(point) == true)
                     hits.Add(list[i]);
         }
 
@@ -845,7 +851,7 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideLine(from, to))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideLine(from, to) == true)
                     hits.Add(list[i]);
         }
 
@@ -854,7 +860,7 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideRect(rect))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideRect(rect) == true)
                     list.Add(list[i]);
         }
 
@@ -863,8 +869,9 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollidePoint(point))
-                    hits.Add(list[i] as T);
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollidePoint(point) == true)
+                    if (list[i] is T typed)
+                        hits.Add(typed);
         }
 
         public void CollideIntoByComponent<T>(Vector2 from, Vector2 to, List<T> hits) where T : Component
@@ -872,8 +879,9 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideLine(from, to))
-                    hits.Add(list[i] as T);
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideLine(from, to) == true)
+                    if (list[i] is T typed)
+                        hits.Add(typed);
         }
 
         public void CollideIntoByComponent<T>(Rectangle rect, List<T> hits) where T : Component
@@ -881,7 +889,7 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideRect(rect))
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideRect(rect) == true)
                     list.Add(list[i] as T);
         }
 
@@ -911,8 +919,9 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollidePoint(point))
-                    action(list[i] as T);
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollidePoint(point) == true)
+                    if (list[i] is T typed)
+                        action(typed);
         }
 
         public void CollideDoByComponent<T>(Vector2 from, Vector2 to, Action<T> action) where T : Component
@@ -920,8 +929,9 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideLine(from, to))
-                    action(list[i] as T);
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideLine(from, to) == true)
+                    if (list[i] is T typed)
+                        action(typed);
         }
 
         public void CollideDoByComponent<T>(Rectangle rect, Action<T> action) where T : Component
@@ -929,8 +939,9 @@ namespace Monocle
             var list = Tracker.Components[typeof(T)];
 
             for (int i = 0; i < list.Count; i++)
-                if (list[i].Entity.Collidable && list[i].Entity.CollideRect(rect))
-                    action(list[i] as T);
+                if (list[i].Entity?.Collidable == true && list[i].Entity?.CollideRect(rect) == true)
+                    if (list[i] is T typed)
+                        action(typed);
         }
 
         public Vector2 LineWalkCheckByComponent<T>(Vector2 from, Vector2 to, float precision) where T : Component
@@ -1000,7 +1011,7 @@ namespace Monocle
         /// </remarks>
         public T CreateAndAdd<T>() where T : Entity, new()
         {
-            var entity = Engine.Pooler.Create<T>();
+            var entity = Engine.Pooler!.Create<T>();
             Add(entity);
             return entity;
         }

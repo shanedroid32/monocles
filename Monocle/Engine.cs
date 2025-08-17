@@ -198,7 +198,7 @@ namespace Monocle
             Graphics.GraphicsProfile = GraphicsProfile.HiDef;
             Graphics.PreferredBackBufferFormat = SurfaceFormat.Color;
             Graphics.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
-            Graphics.ApplyChanges();
+            
 
 #if PS4 || XBOXONE
             Graphics.PreferredBackBufferWidth = 1920;
@@ -231,6 +231,7 @@ namespace Monocle
             ExitOnEscapeKeypress = true;
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            Graphics.ApplyChanges();
         }
 
 #if !CONSOLE
@@ -298,12 +299,16 @@ namespace Monocle
                 scene.GainFocus();
         }
 
-        protected override void OnDeactivated(object sender, EventArgs args)
+        /// <summary>
+        /// Called when the game window loses focus.
+        /// </summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="args">The event arguments.</param>
+        protected override void OnDeactivated(object? sender, EventArgs args)
         {
             base.OnDeactivated(sender, args);
 
-            if (scene != null)
-                scene.LoseFocus();
+            scene?.LoseFocus();
         }
 
         protected override void Initialize()
@@ -357,9 +362,9 @@ namespace Monocle
             }
 
             //Debug Console
-            if (Commands.Open)
+            if (Commands?.Open ?? false)
                 Commands.UpdateOpen();
-            else if (Commands.Enabled)
+            else if (Commands?.Enabled ?? false)
                 Commands.UpdateClosed();
 
             //Changing scenes
@@ -382,7 +387,7 @@ namespace Monocle
             RenderCore();
 
             base.Draw(gameTime);
-            if (Commands.Open)
+            if (Commands?.Open ?? false)
                 Commands.Render();
 
             //Frame counter
@@ -419,7 +424,12 @@ namespace Monocle
             }
         }
 
-        protected override void OnExiting(object sender, ExitingEventArgs args)
+        /// <summary>
+        /// Called when the game is exiting. Handles cleanup of input and other resources.
+        /// </summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="args">The exit event arguments.</param>
+        protected override void OnExiting(object? sender, ExitingEventArgs args)
         {
             base.OnExiting(sender, args);
             MInput.Shutdown();
@@ -441,9 +451,11 @@ namespace Monocle
         #region Scene
 
         /// <summary>
-        /// Called after a Scene ends, before the next Scene begins
+        /// Called after a Scene ends, before the next Scene begins.
         /// </summary>
-        protected virtual void OnSceneTransition(Scene from, Scene to)
+        /// <param name="from">The scene that is ending (can be null).</param>
+        /// <param name="to">The scene that is beginning (can be null).</param>
+        protected virtual void OnSceneTransition(Scene? from, Scene? to)
         {
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -452,12 +464,12 @@ namespace Monocle
         }
 
         /// <summary>
-        /// The currently active Scene. Note that if set, the Scene will not actually change until the end of the Update
+        /// The currently active Scene. Note that if set, the Scene will not actually change until the end of the Update.
         /// </summary>
-        public static Scene Scene
+        public static Scene? Scene
         {
-            get { return Instance.scene; }
-            set { Instance.nextScene = value; }
+            get => Instance?.scene;
+            set { if (Instance != null) Instance.nextScene = value; }
         }
 
         #endregion
@@ -467,35 +479,53 @@ namespace Monocle
         public static Viewport Viewport { get; private set; }
         public static Matrix ScreenMatrix;
 
+        /// <summary>
+        /// Sets the game to windowed mode with the specified dimensions.
+        /// </summary>
+        /// <param name="width">The window width in pixels.</param>
+        /// <param name="height">The window height in pixels.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when width or height are not positive.</exception>
         public static void SetWindowed(int width, int height)
         {
 #if !CONSOLE
-            if (width > 0 && height > 0)
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+            
+            if (Graphics != null)
             {
                 resizing = true;
                 Graphics.PreferredBackBufferWidth = width;
                 Graphics.PreferredBackBufferHeight = height;
                 Graphics.IsFullScreen = false;
                 Graphics.ApplyChanges();
-                Console.WriteLine("WINDOW-" + width + "x" + height);
+                Console.WriteLine($"WINDOW-{width}x{height}");
                 resizing = false;
             }
 #endif
         }
 
+        /// <summary>
+        /// Sets the game to fullscreen mode using the default adapter's current display mode.
+        /// </summary>
         public static void SetFullscreen()
         {
 #if !CONSOLE
-            resizing = true;
-            Graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            Graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-            Graphics.IsFullScreen = true;         
-            Graphics.ApplyChanges();
-            Console.WriteLine("FULLSCREEN");
-            resizing = false;
+            if (Graphics != null)
+            {
+                resizing = true;
+                Graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+                Graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+                Graphics.IsFullScreen = true;
+                Graphics.ApplyChanges();
+                Console.WriteLine("FULLSCREEN");
+                resizing = false;
+            }
 #endif
         }
         
+        /// <summary>
+        /// Updates the viewport and screen matrix based on current screen dimensions and view padding.
+        /// </summary>
         private void UpdateView()
         {
             float screenWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;

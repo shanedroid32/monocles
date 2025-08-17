@@ -5,8 +5,9 @@ namespace Example
 {
     public class ExampleGame : Engine
     {
-        public ExampleGame() : base(320, 180, 1280, 720, "Monocle Example", false)
+        public ExampleGame() : base(640, 360, 1280, 720, "Monocle Example", false)
         {
+            ClearColor = Color.Black;
         }
 
         protected override void Initialize()

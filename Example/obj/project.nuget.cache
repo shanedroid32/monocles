@@ -1,10 +1,9 @@
 {
   "version": 2,
-  "dgSpecHash": "JtRpyojR41Q=",
+  "dgSpecHash": "qsw8tFOOogE=",
   "success": true,
   "projectFilePath": "/Users/shaneross/Documents/GitHub/monocles/Example/Example.csproj",
   "expectedPackageFiles": [
-    "/Users/shaneross/.nuget/packages/monogame.content.builder.task/3.8.2.1105/monogame.content.builder.task.3.8.2.1105.nupkg.sha512",
     "/Users/shaneross/.nuget/packages/monogame.framework.desktopgl/3.8.2.1105/monogame.framework.desktopgl.3.8.2.1105.nupkg.sha512",
     "/Users/shaneross/.nuget/packages/monogame.library.sdl/2.26.5.5/monogame.library.sdl.2.26.5.5.nupkg.sha512",
     "/Users/shaneross/.nuget/packages/nvorbis/0.10.4/nvorbis.0.10.4.nupkg.sha512",
